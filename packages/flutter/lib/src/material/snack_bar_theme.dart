@@ -31,6 +31,9 @@ enum SnackBarBehavior {
   ///
   /// See <https://material.io/design/components/snackbars.html> for more details.
   floating,
+
+  /// This behavior will cause [SnackBar] to be shown in the top of the screen
+  floatingTop,
 }
 
 /// Customizes default property values for [SnackBar] widgets.
@@ -73,7 +76,7 @@ class SnackBarThemeData with Diagnosticable {
     this.disabledActionBackgroundColor,
     this.dismissDirection,
   })  : assert(elevation == null || elevation >= 0.0),
-        assert(width == null || identical(behavior, SnackBarBehavior.floating),
+        assert(width == null || identical(behavior, SnackBarBehavior.floating) || identical(behavior, SnackBarBehavior.floatingTop),
           'Width can only be set if behaviour is SnackBarBehavior.floating'),
         assert(actionOverflowThreshold == null || (actionOverflowThreshold >= 0 && actionOverflowThreshold <= 1),
           'Action overflow threshold must be between 0 and 1 inclusive'),

@@ -323,7 +323,7 @@ class SnackBar extends StatefulWidget {
 
   /// Empty space to surround the snack bar.
   ///
-  /// This property is only used when [behavior] is [SnackBarBehavior.floating].
+  /// This property is used when [behavior] is [SnackBarBehavior.floating] or [SnackBarBehavior.floatingTop].
   /// It can not be used if [width] is specified.
   ///
   /// If this property is null, then [SnackBarThemeData.insetPadding] of
@@ -341,7 +341,7 @@ class SnackBar extends StatefulWidget {
   /// * [content]
   ///     * Top and bottom paddings are 14.
   ///     * Left padding is 24 if [behavior] is [SnackBarBehavior.fixed],
-  ///       16 if [behavior] is [SnackBarBehavior.floating].
+  ///       16 if [behavior] is [SnackBarBehavior.floating] or [SnackBarBehavior.floatingTop].
   ///     * Right padding is same as start padding if there is no [action],
   ///       otherwise 0.
   /// * [action]
@@ -364,8 +364,8 @@ class SnackBar extends StatefulWidget {
   /// The width of the snack bar.
   ///
   /// If width is specified, the snack bar will be centered horizontally in the
-  /// available space. This property is only used when [behavior] is
-  /// [SnackBarBehavior.floating]. It can not be used if [margin] is specified.
+  /// available space. This property is used when [behavior] is
+  /// [SnackBarBehavior.floating] or [SnackBarBehavior.floatingTop]. It can not be used if [margin] is specified.
   ///
   /// If this property is null, then [SnackBarThemeData.width] of
   /// [ThemeData.snackBarTheme] is used. If that is null, the snack bar will
@@ -380,7 +380,7 @@ class SnackBar extends StatefulWidget {
   /// [ThemeData.snackBarTheme] is used. If that's null then the shape will
   /// depend on the [SnackBarBehavior]. For [SnackBarBehavior.fixed], no
   /// overriding shape is specified, so the [SnackBar] is rectangular. For
-  /// [SnackBarBehavior.floating], it uses a [RoundedRectangleBorder] with a
+  /// [SnackBarBehavior.floating] and [SnackBarBehavior.floatingTop], it uses a [RoundedRectangleBorder] with a
   /// circular corner radius of 4.0.
   final ShapeBorder? shape;
 
@@ -401,7 +401,7 @@ class SnackBar extends StatefulWidget {
   /// [ThemeData.snackBarTheme] is used. If that is null, then the default is
   /// [SnackBarBehavior.fixed].
   ///
-  /// If this value is [SnackBarBehavior.floating], the length of the bar
+  /// If this value is [SnackBarBehavior.floating] or [SnackBarBehavior.floatingTop], the length of the bar
   /// is defined by either [width] or [margin].
   final SnackBarBehavior? behavior;
 
@@ -597,7 +597,7 @@ class _SnackBarState extends State<SnackBar> {
     assert((){
       // Whether the behavior is set through the constructor or the theme,
       // assert that our other properties are configured properly.
-      if (snackBarBehavior != SnackBarBehavior.floating) {
+      if (snackBarBehavior != SnackBarBehavior.floating || snackBarBehavior != SnackBarBehavior.floatingTop) {
         String message(String parameter) {
           final String prefix = '$parameter can only be used with floating behavior.';
           if (widget.behavior != null) {
@@ -616,7 +616,7 @@ class _SnackBarState extends State<SnackBar> {
 
     final bool showCloseIcon =  widget.showCloseIcon ?? snackBarTheme.showCloseIcon ?? defaults.showCloseIcon!;
 
-    final bool isFloatingSnackBar = snackBarBehavior == SnackBarBehavior.floating;
+    final bool isFloatingSnackBar = snackBarBehavior == SnackBarBehavior.floating || snackBarBehavior == SnackBarBehavior.floatingTop;
     final double horizontalPadding = isFloatingSnackBar ? 16.0 : 24.0;
     final EdgeInsetsGeometry padding = widget.padding ??
         EdgeInsetsDirectional.only(
@@ -739,7 +739,8 @@ class _SnackBarState extends State<SnackBar> {
     final double elevation = widget.elevation ?? snackBarTheme.elevation ?? defaults.elevation!;
     final Color backgroundColor = widget.backgroundColor ?? snackBarTheme.backgroundColor ?? defaults.backgroundColor!;
     final ShapeBorder? shape = widget.shape ?? snackBarTheme.shape ?? (isFloatingSnackBar ? defaults.shape : null);
-    final DismissDirection dismissDirection = widget.dismissDirection ?? snackBarTheme.dismissDirection ?? DismissDirection.down;
+    final DismissDirection dismissDirection = widget.dismissDirection ?? snackBarTheme.dismissDirection ??
+                                                ((widget.behavior == SnackBarBehavior.floating) ? DismissDirection.down : DismissDirection.up);
 
     snackBar = Material(
       shape: shape,
@@ -818,7 +819,7 @@ class _SnackBarState extends State<SnackBar> {
             );
           },
           child: snackBar,
-        ),
+        )
       );
     } else {
       snackBarTransition = AnimatedBuilder(
@@ -839,7 +840,20 @@ class _SnackBarState extends State<SnackBar> {
       transitionOnUserGestures: true,
       child: ClipRect(
         clipBehavior: widget.clipBehavior,
-        child: snackBarTransition,
+        child: Column(
+          mainAxisAlignment:
+            (widget.behavior == SnackBarBehavior.floating) ?
+              MainAxisAlignment.end :
+              MainAxisAlignment.start,
+          children: [
+            Container(
+              margin: (widget.behavior == SnackBarBehavior.floatingTop) ?
+                EdgeInsets.only(top: 40) :
+                null,
+              child: snackBarTransition,
+            ),
+          ]
+        )
       ),
     );
   }
